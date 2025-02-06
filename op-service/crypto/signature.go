@@ -55,6 +55,7 @@ func SignerFactoryFromConfig(l log.Logger, privateKey, mnemonic, hdPath string, 
 	var signer SignerFactory
 	var fromAddress common.Address
 	if signerConfig.Enabled() {
+		panic("Not supported due to preconfs being enabled")
 		signerClient, err := opsigner.NewSignerClientFromConfig(l, signerConfig)
 		if err != nil {
 			l.Error("Unable to create Signer Client", "error", err)

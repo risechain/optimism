@@ -24,6 +24,15 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/log"
+
+	"crypto/ecdsa"
+	hdwallet "github.com/ethereum-optimism/go-ethereum-hdwallet"
+	"github.com/ethereum/go-ethereum/accounts"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
+	rise_luban_client "github.com/risechain/luban-api/client"
+	rise_luban "github.com/risechain/luban-api/txmgr"
+	"os"
 )
 
 var ErrAlreadyStopped = errors.New("already stopped")
@@ -159,12 +168,77 @@ func (ps *ProposerService) initBalanceMonitor(cfg *CLIConfig) {
 	}
 }
 
+type PreconfTxManager struct {
+	txmgr.TxManager
+	preconf rise_luban.PreconfTxMgr
+}
+
+func NewPreconfTxManager(mgr txmgr.TxManager, l log.Logger, cfg txmgr.CLIConfig) (*PreconfTxManager, error) {
+	var privKey *ecdsa.PrivateKey
+	var err error
+
+	if cfg.PrivateKey != "" && cfg.Mnemonic != "" {
+		return nil, errors.New("cannot specify both a private key and a mnemonic")
+	}
+	if cfg.PrivateKey == "" {
+		// Parse l2output wallet private key and L2OO contract address.
+		wallet, err := hdwallet.NewFromMnemonic(cfg.Mnemonic)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse mnemonic: %w", err)
+		}
+
+		// Allow backwards compatible ways of specifying the HD path
+		hdPath := cfg.HDPath
+		if hdPath == "" && cfg.SequencerHDPath != "" {
+			hdPath = cfg.SequencerHDPath
+		} else if hdPath == "" && cfg.L2OutputHDPath != "" {
+			hdPath = cfg.L2OutputHDPath
+		}
+
+		privKey, err = wallet.PrivateKey(accounts.Account{
+			URL: accounts.URL{
+				Path: hdPath,
+			},
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to create a wallet: %w", err)
+		}
+	} else {
+		privKey, err = crypto.HexToECDSA(strings.TrimPrefix(cfg.PrivateKey, "0x"))
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse the private key: %w", err)
+		}
+	}
+	// we force the curve to Geth's instance, because Geth does an equality check in the nocgo version:
+	// https://github.com/ethereum/go-ethereum/blob/723b1e36ad6a9e998f06f74cc8b11d51635c6402/crypto/signature_nocgo.go#L82
+	privKey.PublicKey.Curve = crypto.S256()
+
+	txmgrCfg, err := txmgr.NewConfig(cfg, l)
+	if err != nil {
+		return nil, err
+	}
+	preconfClient, err := rise_luban_client.NewClient(os.Getenv("RISE_PRECONF_URL"), *privKey)
+	if err != nil {
+		return nil, err
+	}
+	preconf := rise_luban.NewPreconfTxMgr(l, txmgrCfg.Backend, txmgrCfg, preconfClient)
+	return &PreconfTxManager{TxManager: mgr, preconf: *preconf}, nil
+}
+
+func (m *PreconfTxManager) Send(ctx context.Context, candidate txmgr.TxCandidate) (*types.Receipt, error) {
+	return m.preconf.Send(ctx, candidate)
+}
+
 func (ps *ProposerService) initTxManager(cfg *CLIConfig) error {
 	txManager, err := txmgr.NewSimpleTxManager("proposer", ps.Log, ps.Metrics, cfg.TxMgrConfig)
 	if err != nil {
 		return err
 	}
-	ps.TxManager = txManager
+	txMgr, err := NewPreconfTxManager(txManager, ps.Log, cfg.TxMgrConfig)
+	if err != nil {
+		return err
+	}
+	ps.TxManager = txMgr
 	return nil
 }
 
