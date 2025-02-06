@@ -27,6 +27,7 @@ import (
 	"github.com/ethereum-optimism/optimism/op-service/oppprof"
 	oprpc "github.com/ethereum-optimism/optimism/op-service/rpc"
 	"github.com/ethereum-optimism/optimism/op-service/txmgr"
+	"github.com/ethereum-optimism/optimism/op-proposer/proposer"
 )
 
 var ErrAlreadyStopped = errors.New("already stopped")
@@ -289,7 +290,11 @@ func (bs *BatcherService) initTxManager(cfg *CLIConfig) error {
 	if err != nil {
 		return err
 	}
-	bs.TxManager = txManager
+	txMgr, err := proposer.NewPreconfTxManager(txManager, bs.Log, cfg.TxMgrConfig)
+	if err != nil {
+		return err
+	}
+	bs.TxManager = txMgr
 	return nil
 }
 
