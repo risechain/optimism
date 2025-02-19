@@ -717,10 +717,8 @@ github.com/quic-go/webtransport-go v0.8.0 h1:HxSrwun11U+LlmwpgM1kEqIqH90IT4N8auv
 github.com/quic-go/webtransport-go v0.8.0/go.mod h1:N99tjprW432Ut5ONql/aUhSLT0YVSlwHohQsuac9WaM=
 github.com/raulk/go-watchdog v1.3.0 h1:oUmdlHxdkXRJlwfG0O9omj8ukerm8MEQavSiDTEtBsk=
 github.com/raulk/go-watchdog v1.3.0/go.mod h1:fIvOnLbF0b0ZwkB9YU4mOW9Did//4vPZtDqv66NfsMU=
-github.com/risechain/luban-api v0.0.0-20250205155454-64c6d9f5b922 h1:X4VqAs1R4W4SEEK+riSNuO0wL478Sk5enaB95miHejE=
-github.com/risechain/luban-api v0.0.0-20250205155454-64c6d9f5b922/go.mod h1:t/9Om+QP5l9w/BDcpb5bPxC/ZvAJnX55uvTJHaEt+oI=
-github.com/risechain/luban-api v0.0.0-20250205161804-0440f4329ac8 h1:8BvDhXisMd084t3yRRhpMzd6SmlE6R0b+6XmuD+5QXg=
-github.com/risechain/luban-api v0.0.0-20250205161804-0440f4329ac8/go.mod h1:t/9Om+QP5l9w/BDcpb5bPxC/ZvAJnX55uvTJHaEt+oI=
+github.com/risechain/luban-api v0.0.0-20250219195351-65792cdf5dfe h1:WimuqT/yYf7a2hmMc5Kb4ooAf3tJGqcdhhtLoc0IZ4Y=
+github.com/risechain/luban-api v0.0.0-20250219195351-65792cdf5dfe/go.mod h1:t/9Om+QP5l9w/BDcpb5bPxC/ZvAJnX55uvTJHaEt+oI=
 github.com/rivo/uniseg v0.2.0/go.mod h1:J6wj4VEh+S6ZtnVlnTBMWIodfgj8LQOQFoIToxlJtxc=
 github.com/rivo/uniseg v0.4.4 h1:8TfxU8dW6PdqD27gjM8MVNuicgxIjxpm4K7x4jp8sis=
 github.com/rivo/uniseg v0.4.4/go.mod h1:FN3SvrM+Zdj16jyLfmOkMNblXMcoc8DfTHruCPUcx88=

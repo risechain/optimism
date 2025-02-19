@@ -170,7 +170,7 @@ func (ps *ProposerService) initBalanceMonitor(cfg *CLIConfig) {
 
 type PreconfTxManager struct {
 	txmgr.TxManager
-	preconf rise_luban.PreconfTxMgr
+	preconf *rise_luban.PreconfTxMgr
 }
 
 func NewPreconfTxManager(mgr txmgr.TxManager, l log.Logger, cfg txmgr.CLIConfig) (*PreconfTxManager, error) {
@@ -217,12 +217,18 @@ func NewPreconfTxManager(mgr txmgr.TxManager, l log.Logger, cfg txmgr.CLIConfig)
 	if err != nil {
 		return nil, err
 	}
-	preconfClient, err := rise_luban_client.NewClient(os.Getenv("RISE_PRECONF_URL"), *privKey)
+	preconfClient, err := rise_luban_client.NewClient(os.Getenv("RISE_PRECONF_URL"), privKey)
 	if err != nil {
 		return nil, err
 	}
-	preconf := rise_luban.NewPreconfTxMgr(l, txmgrCfg.Backend, txmgrCfg, preconfClient)
-	return &PreconfTxManager{TxManager: mgr, preconf: *preconf}, nil
+	preconf := rise_luban.NewPreconfTxMgr(
+		l,
+		txmgrCfg.Backend.(rise_luban.ETHBackend),
+		txmgrCfg,
+		preconfClient,
+		os.Getenv("RISE_PROPOSER_L1_BEACON"),
+	)
+	return &PreconfTxManager{TxManager: mgr, preconf: preconf}, nil
 }
 
 func (m *PreconfTxManager) Send(ctx context.Context, candidate txmgr.TxCandidate) (*types.Receipt, error) {

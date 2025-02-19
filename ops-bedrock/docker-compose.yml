@@ -158,6 +158,7 @@ services:
       - "6546:8545"
     environment:
       OP_PROPOSER_L1_ETH_RPC: http://l1:8545
+      RISE_PROPOSER_L1_BEACON: http://l1-bn:5052
       OP_PROPOSER_ROLLUP_RPC: http://op-node:8545
       OP_PROPOSER_POLL_INTERVAL: 1s
       OP_PROPOSER_NUM_CONFIRMATIONS: 1
