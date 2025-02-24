@@ -44,7 +44,7 @@ require (
 	github.com/pkg/profile v1.7.0
 	github.com/prometheus/client_golang v1.20.5
 	github.com/protolambda/ctxlock v0.1.0
-	github.com/risechain/luban-api v0.0.0-20250219195351-65792cdf5dfe
+	github.com/risechain/luban-api v0.0.0-20250224062222-260b8b088655
 	github.com/stretchr/testify v1.10.0
 	github.com/urfave/cli/v2 v2.27.5
 	golang.org/x/crypto v0.28.0
