@@ -87,7 +87,11 @@ contract SystemConfig is ProxyAdminOwnedBase, OwnableUpgradeable, Reinitializabl
     /// @notice The maximum gas limit that can be set for L2 blocks. This limit is used to enforce that the blocks
     ///         on L2 are not too large to process and prove. Over time, this value can be increased as various
     ///         optimizations and improvements are made to the system at large.
-    uint64 internal constant MAX_GAS_LIMIT = 500_000_000;
+    /// @dev    RISE: Setting a max gas limit for ease of throughput testing;
+    ///         we run an external DA without proofs initially anyway. Can
+    ///         still set the LIVE gas limit properly once we enable proofs.
+    ///         https://github.com/ethereum/execution-spec-tests/blob/a23bf9b828b3bb84fd41d2f59ca76fb5be93b814/src/ethereum_test_exceptions/exceptions.py#L456
+    uint64 internal constant MAX_GAS_LIMIT = 0x7fffffffffffffff;
 
     /// @notice Fixed L2 gas overhead. Used as part of the L2 fee calculation.
     ///         Deprecated since the Ecotone network upgrade
