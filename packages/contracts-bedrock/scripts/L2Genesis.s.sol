@@ -67,7 +67,7 @@ contract L2Genesis is Script {
 
     uint256 internal constant PRECOMPILE_COUNT = 256;
 
-    uint80 internal constant DEV_ACCOUNT_FUND_AMT = 10_000 ether;
+    uint256 internal constant DEV_ACCOUNT_FUND_AMT = 10_000_000 ether;
 
     /// @notice Default Anvil dev accounts. Only funded if `cfg.fundDevAccounts == true`.
     /// Also known as "test test test test test test test test test test test junk" mnemonic accounts,
