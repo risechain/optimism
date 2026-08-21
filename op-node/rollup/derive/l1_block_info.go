@@ -45,8 +45,10 @@ var (
 )
 
 const (
-	RegolithSystemTxGas         = 1_000_000
-	DAFootprintGasScalarDefault = 400
+	RegolithSystemTxGas = 1_000_000
+	// RISE commits a zero DA footprint gas scalar in every L1-attributes transaction.
+	// Upstream treats 0 as "unset" and substitutes 400, which no config can reproduce.
+	DAFootprintGasScalarDefault = 0
 )
 
 // L1BlockInfo presents the information stored in a L1Block.setL1BlockValues call
