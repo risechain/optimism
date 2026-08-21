@@ -10,10 +10,10 @@ import (
 	"github.com/ethereum-optimism/optimism/op-node/rollup/derive/params"
 )
 
-// Frames cannot be larger than 1 MB.
-// Data transactions that carry frames are generally not larger than 128 KB due to L1 network conditions,
-// but we leave space to grow larger anyway (gas limit allows for more data).
-const MaxFrameLen = 1_000_000
+// RISE posts frames through EigenDA, whose maximum payload is 16,252,897 bytes; anything
+// larger encodes to a 32 MiB blob and is rejected at dispersal. Calldata is laid out as
+// [1 version byte] + [23 byte frame header] + [frame payload], leaving 16,252,873 bytes.
+const MaxFrameLen = 16_252_873
 
 // Data Format
 //
