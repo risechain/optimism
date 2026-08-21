@@ -48,6 +48,17 @@ use {
 #[cfg(feature = "std")]
 use reth_evm::{ConfigureEngineEvm, ExecutableTxIterator};
 
+const RISE_MAX_CODE_SIZE: usize = 0x40000;
+const RISE_MAX_INIT_CODE_SIZE: usize = 2 * RISE_MAX_CODE_SIZE;
+
+/// Applies RISE's consensus-critical EVM overrides. Every [`EvmEnv`] constructor must call this;
+/// patching a subset defers a chain fork rather than preventing it. See `RISE.md` in the repo root.
+fn apply_rise_cfg_overrides<Spec>(cfg_env: &mut CfgEnv<Spec>) {
+    cfg_env.limit_contract_code_size = Some(RISE_MAX_CODE_SIZE);
+    cfg_env.limit_contract_initcode_size = Some(RISE_MAX_INIT_CODE_SIZE);
+    cfg_env.tx_gas_limit_cap = Some(u64::MAX);
+}
+
 mod config;
 pub use config::{OpNextBlockEnvAttributes, revm_spec, revm_spec_by_timestamp_after_bedrock};
 mod execute;
@@ -166,7 +177,10 @@ where
     }
 
     fn evm_env(&self, header: &Header) -> Result<EvmEnv<OpSpecId>, Self::Error> {
-        Ok(evm_env_for_op_block(header, self.chain_spec(), self.chain_spec().chain().id()))
+        let mut evm_env =
+            evm_env_for_op_block(header, self.chain_spec(), self.chain_spec().chain().id());
+        apply_rise_cfg_overrides(&mut evm_env.cfg_env);
+        Ok(evm_env)
     }
 
     fn next_evm_env(
@@ -174,7 +188,7 @@ where
         parent: &Header,
         attributes: &Self::NextBlockEnvCtx,
     ) -> Result<EvmEnv<OpSpecId>, Self::Error> {
-        Ok(evm_env_for_op_next_block(
+        let mut evm_env = evm_env_for_op_next_block(
             parent,
             NextEvmEnvAttributes {
                 timestamp: attributes.timestamp,
@@ -185,7 +199,9 @@ where
             self.chain_spec().next_block_base_fee(parent, attributes.timestamp).unwrap_or_default(),
             self.chain_spec(),
             self.chain_spec().chain().id(),
-        ))
+        );
+        apply_rise_cfg_overrides(&mut evm_env.cfg_env);
+        Ok(evm_env)
     }
 
     fn context_for_block(
@@ -236,9 +252,10 @@ where
 
         let spec = revm_spec_by_timestamp_after_bedrock(self.chain_spec(), timestamp);
 
-        let cfg_env = CfgEnv::new()
+        let mut cfg_env = CfgEnv::new()
             .with_chain_id(self.chain_spec().chain().id())
             .with_spec_and_mainnet_gas_params(spec);
+        apply_rise_cfg_overrides(&mut cfg_env);
 
         let blob_excess_gas_and_price = spec
             .into_eth_spec()
