@@ -19,10 +19,10 @@ every `EvmEnv` constructor — mirrors `RiseEvmConfig` in `risechain/rise`,
 
 ## CL — derivation
 
-| file | change |
-| --- | --- |
-| `op-node/rollup/derive/l1_block_info.go` | `DAFootprintGasScalarDefault` 400 → 0 |
-| `op-node/rollup/derive/frame.go` | `MaxFrameLen` 1_000_000 → 16_252_873 (EigenDA payload cap) |
+| file | change | why |
+| --- | --- | --- |
+| `op-node/rollup/derive/l1_block_info.go` | `DAFootprintGasScalarDefault` 400 → 0 | RISE commits 0 in every L1-attributes tx; upstream rewrites 0 → 400, which no config can reproduce |
+| `op-node/rollup/derive/frame.go` | `MaxFrameLen` 1_000_000 → 16_252_873 | EigenDA payload cap |
 
 ## Picking the base tag
 
@@ -35,3 +35,32 @@ newer op-reth than mainnet actually runs. Confirm what is deployed before re-bas
 subkeys) without bumping `DB_VERSION`, so an older binary opens a newer database and then panics
 in `StoredNibblesSubKey::from_compact` on first state-root computation. Downgrading op-reth
 requires a full resync. Check with `op-reth db settings get --datadir <path>`.
+
+## Build
+
+Both images are wired into `docker-bake.hcl` at the repo root.
+
+```sh
+# op-node (Go)
+GIT_COMMIT=$(git rev-parse HEAD) \
+GIT_DATE=$(git show -s --format='%ct') \
+IMAGE_TAGS=$(git rev-parse --short=7 HEAD),latest \
+docker buildx bake --progress plain --load -f docker-bake.hcl op-node
+
+# op-reth (Rust)
+IMAGE_TAGS=$(git rev-parse --short=7 HEAD),latest \
+docker buildx bake --progress plain --load -f docker-bake.hcl op-reth
+```
+
+Override `REGISTRY` / `REPOSITORY` env vars to retag for a private registry. `--load` only
+works with a single platform; drop it and use `--push` for multi-arch.
+
+## Run
+
+Snapshot download and full runbook live in
+[github.com/risechain/rise-node](https://github.com/risechain/rise-node) — grab the latest
+Cloudflare R2 snapshot and extract it into `/mnt/data` before starting containers.
+
+Then follow [§3c *Run with your own upstream binaries*](https://github.com/risechain/rise-node/blob/rise-node/v0.7.0-rc.1/README.md#3c-run-with-your-own-upstream-binaries-advanced)
+in the `rise-node` README at tag `rise-node/v0.7.0-rc.1`, using the `op-node` and `op-reth`
+image tags you produced in Build above.
